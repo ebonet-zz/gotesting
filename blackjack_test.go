@@ -1,65 +1,31 @@
-package gotesting_test
+package gotesting
 
 import (
-	. "github.com/ebonet/gotesting"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
-	. "github.com/onsi/ginkgo/extensions/table"
-	"fmt"
+	"testing"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
-var _ = Describe("Blackjack", func() {
+func TestComputeScore(t *testing.T) {
 
-	Describe("Scoring Hand", func() {
-		Context("with empty hand", func() {
-			It("Should return 0", func() {
-				Expect(ComputeScore("")).To(Equal(0))
-			})
+
+	testCases := []struct {
+		Hand          string
+		ExpectedScore int
+	}{
+		{"2", 2},
+		{"3", 3},
+		{"J", 10},
+		{"A", 11},
+		{"AJ", 21},
+		{"A345", 23},
+		{"/345≈", 0}, // Invalid character
+		{"", 0},      // Empty hand
+	}
+
+	for _, entry := range testCases {
+		Convey("With Hand "+entry.Hand, t, func() {
+			So(ComputeScore(entry.Hand), ShouldEqual, entry.ExpectedScore)
 		})
+	}
+}
 
-		Context("with hand A2", func() {
-			It("Should return 13", func() {
-				Expect(ComputeScore("A2")).To(Equal(13))
-			})
-		})
-	})
-
-	DescribeTable("Scoring a hand",
-		func(hand string, expected int) {
-			Expect(ComputeScore(hand)).To(Equal(expected))
-		},
-		Entry("2","2", 2),
-		Entry("3","3", 3),
-		Entry("J","J", 10),
-		Entry("A","A", 11),
-		Entry("AJ","AJ", 21),
-		Entry("A345","A345", 23),
-		Entry("Invalid Char","/345≈", 0), // Invalid character
-		Entry("Empty Hand", "", 0),      // Empty hand
-	)
-
-	Describe("Testing for blackjack", func() {
-		contexts := []struct {
-			Hand           string
-			ExpectedResult bool
-		}{
-			{"AJ", true},
-			{"JA", true},
-			{"A4", false},
-			{"J2", false},
-			{"2", false},
-			{"AJ5", false},
-		}
-
-		for _, ctx := range contexts {
-			ctx := ctx //gotcha!
-			Context("With hand"+ctx.Hand, func(){
-				It(fmt.Sprintf("Should return %b", ctx.ExpectedResult), func() {
-					Expect(CheckIfBlackjack(ctx.Hand)).To(Equal(ctx.ExpectedResult))
-				})
-			})
-		}
-	})
-})
